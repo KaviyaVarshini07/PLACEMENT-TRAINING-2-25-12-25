@@ -1,0 +1,15 @@
+class Node { String val; Node left,right; Node(String v){val=v;} }
+
+public class ExprTree {
+    static int eval(Node n){
+        if(n.left==null) return Integer.parseInt(n.val);
+        int l=eval(n.left), r=eval(n.right);
+        switch(n.val){ case "+": return l+r; case "-": return l-r; case "*": return l*r; case "/": return l/r; }
+        return 0;
+    }
+    public static void main(String[] args){
+        Node root=new Node("+"); root.left=new Node("3"); root.right=new Node("*");
+        root.right.left=new Node("2"); root.right.right=new Node("5");
+        System.out.println(eval(root)); // 3+(2*5)=13
+    }
+}
