@@ -1,0 +1,14 @@
+import java.io.*; import java.net.*; import java.util.concurrent.*;
+
+public class WebCrawler {
+    static ExecutorService pool=Executors.newFixedThreadPool(4);
+    public static void main(String[] args){
+        pool.submit(()->crawl("http://example.com"));
+        pool.shutdown();
+    }
+    static void crawl(String url){
+        try(BufferedReader br=new BufferedReader(new InputStreamReader(new URL(url).openStream()))){
+            String line; while((line=br.readLine())!=null){ if(line.contains("href")) System.out.println("Found link: "+line); }
+        }catch(Exception e){ System.out.println("Error "+e); }
+    }
+}
