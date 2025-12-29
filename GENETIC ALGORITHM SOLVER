@@ -1,0 +1,31 @@
+import java.util.*;
+
+public class GeneticTSP {
+    static class Path {
+        List<Integer> cities; double fitness;
+        Path(List<Integer> cities){ this.cities=new ArrayList<>(cities); }
+    }
+    static double dist(int a,int b){ return Math.abs(a-b)+1; }
+    static double fitness(Path p){
+        double sum=0; for(int i=0;i<p.cities.size()-1;i++) sum+=dist(p.cities.get(i),p.cities.get(i+1));
+        return 1.0/sum;
+    }
+    public static void main(String[] args){
+        int N=6; List<Integer> base=new ArrayList<>(); for(int i=0;i<N;i++) base.add(i);
+        Random rnd=new Random();
+        List<Path> pop=new ArrayList<>();
+        for(int i=0;i<20;i++){ Collections.shuffle(base,rnd); Path p=new Path(base); p.fitness=fitness(p); pop.add(p); }
+        for(int gen=0;gen<100;gen++){
+            pop.sort((a,b)->Double.compare(b.fitness,a.fitness));
+            Path best=pop.get(0);
+            System.out.println("Gen "+gen+" best fitness "+best.fitness+" path "+best.cities);
+            List<Path> newPop=new ArrayList<>();
+            for(int i=0;i<10;i++){
+                Path p=new Path(best.cities);
+                Collections.swap(p.cities,rnd.nextInt(N),rnd.nextInt(N));
+                p.fitness=fitness(p); newPop.add(p);
+            }
+            pop=newPop;
+        }
+    }
+}
