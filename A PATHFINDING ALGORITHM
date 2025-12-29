@@ -1,0 +1,26 @@
+import java.util.*;
+
+class Node { int x,y,g,h; Node parent; int f(){return g+h;} }
+
+public class AStar {
+    static int heuristic(Node a,Node b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
+    public static void main(String[] args){
+        Node start=new Node(); start.x=0; start.y=0;
+        Node goal=new Node(); goal.x=3; goal.y=3;
+        PriorityQueue<Node> open=new PriorityQueue<>(Comparator.comparingInt(Node::f));
+        Set<String> closed=new HashSet<>();
+        start.g=0; start.h=heuristic(start,goal);
+        open.add(start);
+        while(!open.isEmpty()){
+            Node cur=open.poll();
+            if(cur.x==goal.x && cur.y==goal.y){ System.out.println("Reached goal"); break; }
+            closed.add(cur.x+","+cur.y);
+            for(int[] d: new int[][]{{1,0},{-1,0},{0,1},{0,-1}}){
+                Node n=new Node(); n.x=cur.x+d[0]; n.y=cur.y+d[1];
+                if(closed.contains(n.x+","+n.y)) continue;
+                n.g=cur.g+1; n.h=heuristic(n,goal); n.parent=cur;
+                open.add(n);
+            }
+        }
+    }
+}
