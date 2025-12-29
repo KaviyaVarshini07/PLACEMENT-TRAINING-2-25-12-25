@@ -1,0 +1,12 @@
+import java.util.*;
+
+class Trie {
+    static class Node { Map<Character,Node> children=new HashMap<>(); boolean end=false; }
+    Node root=new Node();
+    void insert(String w){ Node cur=root; for(char c:w.toCharArray()){ cur=cur.children.computeIfAbsent(c,k->new Node()); } cur.end=true; }
+    boolean search(String w){ Node cur=root; for(char c:w.toCharArray()){ cur=cur.children.get(c); if(cur==null) return false; } return cur.end; }
+    public static void main(String[] args){
+        Trie t=new Trie(); t.insert("hello"); t.insert("world");
+        System.out.println(t.search("hello")); System.out.println(t.search("java"));
+    }
+}
