@@ -1,0 +1,48 @@
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class ConcurrentSieve {
+    public static List<Integer> sieve(int n, int threads) throws InterruptedException {
+        AtomicBoolean[] isComposite = new AtomicBoolean[n + 1];
+        for (int i = 0; i <= n; i++) isComposite[i] = new AtomicBoolean(false);
+
+        int sqrt = (int)Math.sqrt(n);
+        // Mark small primes using single-threaded sieve up to sqrt(n)
+        boolean[] small = new boolean[sqrt + 1];
+        Arrays.fill(small, false);
+        for (int p = 2; p * p <= sqrt; p++) {
+            if (!small[p]) {
+                for (int k = p * p; k <= sqrt; k += p) small[k] = true;
+            }
+        }
+        List<Integer> basePrimes = new ArrayList<>();
+        for (int p = 2; p <= sqrt; p++) if (!small[p]) basePrimes.add(p);
+
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        for (int bp : basePrimes) {
+            pool.submit(() -> {
+                int start = Math.max(bp * bp, ((2 + bp - 1) / bp) * bp);
+                for (int k = start; k <= n; k += bp) {
+                    isComposite[k].set(true);
+                }
+            });
+        }
+        pool.shutdown();
+        pool.awaitTermination(1, TimeUnit.MINUTES);
+
+        List<Integer> primes = new ArrayList<>();
+        for (int i = 2; i <= n; i++) if (!isComposite[i].get()) primes.add(i);
+        return primes;
+    }
+
+    public static void main(String[] args) throws Exception {
+        int limit = args.length > 0 ? Integer.parseInt(args[0]) : 100000;
+        int threads = args.length > 1 ? Integer.parseInt(args[1]) : Runtime.getRuntime().availableProcessors();
+        long t = System.currentTimeMillis();
+        List<Integer> primes = sieve(limit, threads);
+        long dt = System.currentTimeMillis() - t;
+        System.out.println("Found " + primes.size() + " primes up to " + limit + " in " + dt + " ms");
+        System.out.println("Sample: " + primes.subList(0, Math.min(20, primes.size())));
+    }
+}
