@@ -1,0 +1,55 @@
+import java.io.*;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class TinyHttpServer {
+    private final int port;
+
+    public TinyHttpServer(int port) { this.port = port; }
+
+    public void start() throws IOException {
+        ServerSocket server = new ServerSocket(port);
+        System.out.println("HTTP server listening on http://localhost:" + port);
+        while (true) {
+            Socket client = server.accept();
+            new Thread(() -> handle(client)).start();
+        }
+    }
+
+    private void handle(Socket client) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+             OutputStream out = client.getOutputStream()) {
+            String requestLine = in.readLine();
+            if (requestLine == null) return;
+            String path = requestLine.split(" ")[1];
+            // Simple routing
+            String body;
+            if ("/".equals(path)) {
+                body = "<html><body><h1>Hello from TinyHttpServer</h1><p>Time: "
+                        + ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME)
+                        + "</p></body></html>";
+            } else if ("/health".equals(path)) {
+                body = "{\"status\":\"ok\"}";
+            } else {
+                body = "<html><body><h1>404 Not Found</h1></body></html>";
+            }
+            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+            String headers = "HTTP/1.1 " + (path.equals("/") || path.equals("/health") ? "200 OK" : "404 Not Found") + "\r\n" +
+                    "Content-Type: " + (path.equals("/health") ? "application/json" : "text/html") + "; charset=utf-8\r\n" +
+                    "Content-Length: " + bytes.length + "\r\n" +
+                    "Connection: close\r\n\r\n";
+            out.write(headers.getBytes(StandardCharsets.UTF_8));
+            out.write(bytes);
+        } catch (Exception ignored) {
+        } finally {
+            try { client.close(); } catch (IOException ignored) {}
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        int port = args.length > 0 ? Integer.parseInt(args[0]) : 8080;
+        new TinyHttpServer(port).start();
+    }
+}
