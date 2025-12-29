@@ -1,0 +1,10 @@
+import java.util.concurrent.*;
+
+public class ProducerConsumer {
+    public static void main(String[] args){
+        BlockingQueue<Integer> q=new ArrayBlockingQueue<>(5);
+        Runnable producer=()->{ try{ for(int i=0;i<10;i++){ q.put(i); System.out.println("Produced "+i); Thread.sleep(100); } }catch(Exception e){} };
+        Runnable consumer=()->{ try{ for(int i=0;i<10;i++){ int v=q.take(); System.out.println("Consumed "+v); Thread.sleep(200); } }catch(Exception e){} };
+        new Thread(producer).start(); new Thread(consumer).start();
+    }
+}
