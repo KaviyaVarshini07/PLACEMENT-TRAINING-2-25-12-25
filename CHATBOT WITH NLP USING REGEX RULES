@@ -1,0 +1,43 @@
+import java.util.*;
+import java.util.regex.*;
+
+public class RuleChatbot {
+    static class Rule {
+        Pattern p; String response;
+        Rule(String regex, String response){ this.p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE); this.response = response; }
+    }
+    static List<Rule> rules = List.of(
+        new Rule("\\bhello|hi|hey\\b", "Hello! How can I help you today?"),
+        new Rule("my name is (\\w+)", "Nice to meet you, $1."),
+        new Rule("i feel (sad|bad|down)", "I'm sorry you're feeling $1. Want to talk more about it?"),
+        new Rule("what is your name\\??", "I'm a simple Java chatbot."),
+        new Rule("time\\??", "The current time is: %TIME%"),
+        new Rule("bye|goodbye", "Goodbye! Take care.")
+    );
+
+    static String respond(String input){
+        for(Rule r: rules){
+            Matcher m = r.p.matcher(input);
+            if(m.find()){
+                String res = r.response;
+                for(int i=1;i<=m.groupCount();i++){
+                    res = res.replace("$"+i, m.group(i));
+                }
+                if(res.contains("%TIME%")) res = res.replace("%TIME%", new Date().toString());
+                return res;
+            }
+        }
+        return "I didn't understand that. Could you rephrase?";
+    }
+
+    public static void main(String[] args){
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Chatbot ready. Type 'bye' to exit.");
+        while(true){
+            System.out.print("> ");
+            String line = sc.nextLine();
+            if(line.equalsIgnoreCase("bye")){ System.out.println("Goodbye!"); break; }
+            System.out.println(respond(line));
+        }
+    }
+}
