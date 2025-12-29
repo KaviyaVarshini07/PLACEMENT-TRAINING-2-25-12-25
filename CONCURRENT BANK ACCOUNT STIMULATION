@@ -1,0 +1,12 @@
+class Account { int balance=1000; synchronized void deposit(int amt){ balance+=amt; } synchronized void withdraw(int amt){ balance-=amt; } }
+
+public class BankSim {
+    public static void main(String[] args){
+        Account acc=new Account();
+        Runnable r=()->{ for(int i=0;i<100;i++){ acc.deposit(10); acc.withdraw(10); } };
+        Thread t1=new Thread(r), t2=new Thread(r);
+        t1.start(); t2.start();
+        try{ t1.join(); t2.join(); }catch(Exception e){}
+        System.out.println("Final balance: "+acc.balance);
+    }
+}
